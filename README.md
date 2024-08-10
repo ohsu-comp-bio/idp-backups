@@ -1,10 +1,8 @@
 # Overview
 
-This project involves the migration of PostgreSQL databases and
-Elasticsearch indices from an older environment to a new environment on
-AWS. The steps below provide a guide for creating backups, restoring
-them to the new environment, and ensuring everything is configured
-correctly.
+Scripts and steps for the migration of PostgreSQL databases and Elasticsearch indices from an older environment to a new environment on AWS.
+
+The steps below provide a guide for creating backups, restoring  them to the new environment, and ensuring everything is configured correctly.
 
 ## Backup and Migration Steps
 
