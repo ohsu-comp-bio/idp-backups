@@ -173,6 +173,13 @@ curl localhost:9200/_cat/indices
 # yellow open default-commons-config-index            -2yTyNV6QQuAPYSK9fyLYw 5 1   1 0  4.2kb  4.2kb
 # yellow open gen3.aced.io_patient-array-config_0     PUJKLsY8RPW191Mnzed-9Q 5 1   1 0  4.8kb  4.8kb
 ```
+
+5. Redeploy and restart the aws-es-proxy deployment.
+
+```sh
+make $DEPLPYMENT
+kubectl rollout restart deployment/aws-es-proxy-deployment
+```
             
 ### Additional Resources    
 
