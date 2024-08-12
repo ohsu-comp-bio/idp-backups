@@ -1,12 +1,42 @@
-# Overview
+<h1 align="center">
+  IDP Backups
+</h1>
 
-Scripts and steps for the migration of PostgreSQL databases and Elasticsearch indices from an older environment to a new environment on AWS.
+<div align="center">
+  <a href="https://github.com/ohsu-comp-bio/idp-backups/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
+  ·
+  <a href="https://github.com/ohsu-comp-bio/idp-backups/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
+  ·
+  <a href="https://github.com/ohsu-comp-bio/idp-backups/discussions">Ask a Question</a>
+</div>
 
-The steps below provide a guide for creating backups, restoring  them to the new environment, and ensuring everything is configured correctly.
+<div align="center">
+<br />
 
-## Backup and Migration Steps
+[![Project license](https://img.shields.io/github/license/ohsu-comp-bio/idp-backups.svg)](LICENSE)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg)](https://github.com/ohsu-comp-bio/idp-backups/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![Coded with love by ohsu-comp-bio](https://img.shields.io/badge/Coded%20with%20%E2%99%A5%20by-OHSU_Comp_Bio-blue)](https://github.com/ohsu-comp-bio)
 
-### Backup Steps (RDS)
+</div>
+
+- [Backup Steps (RDS)](#backup-steps-rds)
+    - [1. Set Up Environment Variables](#1-set-up-environment-variables)
+    - [2. Restore Global Objects and Roles](#2-restore-global-objects-and-roles)
+    - [3. Drop and Recreate Databases](#3-drop-and-recreate-databases)
+    - [4. Restore Each Database from the Dump Files](#4-restore-each-database-from-the-dump-files)
+    - [5. Unset Environment Variables](#5-unset-environment-variables)
+    - [6. Redeploy Services](#6-redeploy-services)
+- [Backup Steps (Elasticsearch)](#backup-steps-elasticsearch)
+- [Additional Resources](#additional-resources)
+
+---
+
+<!-- omit in toc -->
+# About
+
+This project involves the migration of PostgreSQL databases and Elasticsearch indices from an older environment to a new environment on AWS. The steps below provide a guide for creating backups, restoring them to the new environment, and ensuring everything is configured correctly.
+
+## Backup Steps (RDS)
 
 1. **Create New Database in AWS Console**:
     - Set up the new RDS instance in the AWS console with the appropriate configurations.
@@ -26,9 +56,7 @@ The steps below provide a guide for creating backups, restoring  them to the new
 6. **Test Logging In and Downloading Files**:
     - Ensure that the application can connect to the new database and that all functionalities are working as expected.
 
-### Detailed Commands for RDS Migration
-
-#### 1. Set Up Environment Variables
+### 1. Set Up Environment Variables
 
 ```sh
 export DEPLOYMENT='staging'
@@ -39,7 +67,7 @@ export DB_EXPORT="/tmp/$DEPLOYMENT-db-dump"
 mkdir -p $ES_EXPOR
 ```
 
-#### 2. Restore Global Objects and Roles
+### 2. Restore Global Objects and Roles
 
 Restore global objects such as roles and tablespaces before restoring the individual databases.
 
@@ -47,7 +75,7 @@ Restore global objects such as roles and tablespaces before restoring the indivi
 psql -h $NEW_HOST -U $NEW_USER -f "$DB_EXPORT/$DEPLOYMENT_globals.sql"
 ```
 
-#### 3. Drop and Recreate Databases
+### 3. Drop and Recreate Databases
 
 Ensure that old databases are dropped, and fresh databases are created.
 
@@ -71,7 +99,7 @@ for DB in "${SERVICES[@]}"; do
 done
 ```
 
-#### 4. Restore Each Database from the Dump Files
+### 4. Restore Each Database from the Dump Files
 
 Load the dump files into the newly created databases.
 
@@ -81,7 +109,7 @@ for DB in "${SERVICES[@]}"; do
 done
 ```
 
-#### 5. Unset Environment Variables
+### 5. Unset Environment Variables
 
 Remove sensitive information from your environment.
 
@@ -92,7 +120,7 @@ unset NEW_USER
 unset DB_EXPORT
 ```
 
-#### 6. Redeploy Services
+### 6. Redeploy Services
 
 Restart the Kubernetes deployments to apply the new configurations.
 
@@ -102,7 +130,7 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 ```
 
-### Backup Steps (Elasticsearch)
+## Backup Steps (Elasticsearch)
 
 The steps below guide you through the process of migrating Elasticsearch
 indices from an old domain to a new, smaller domain on AWS using the
@@ -173,14 +201,7 @@ curl localhost:9200/_cat/indices
 # yellow open default-commons-config-index            -2yTyNV6QQuAPYSK9fyLYw 5 1   1 0  4.2kb  4.2kb
 # yellow open gen3.aced.io_patient-array-config_0     PUJKLsY8RPW191Mnzed-9Q 5 1   1 0  4.8kb  4.8kb
 ```
-
-5. Redeploy and restart the aws-es-proxy deployment.
-
-```sh
-make $DEPLPYMENT
-kubectl rollout restart deployment/aws-es-proxy-deployment
-```
             
-### Additional Resources    
+## Additional Resources    
 
 - **[ohsu-comp-bio/load-testing](https://github.com/ohsu-comp-bio/load-testing)**: Load testing and benchmarking of the Gen3 system with `k6`
