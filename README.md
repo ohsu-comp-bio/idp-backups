@@ -45,7 +45,7 @@ The steps below provide a guide for creating backups of PostgreSQL databases and
 
 ## 1. Create New Database
 
-- Set up the new RDS instance in the AWS console with the appropriate configurations.
+Set up the new RDS instance in the AWS console with the appropriate configurations.
 
 ## 2. Create Dump Files
 
