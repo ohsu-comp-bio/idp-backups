@@ -28,9 +28,9 @@
     - [5. Redeploy](#5-redeploy)
     - [6. Test and Verify](#6-test-and-verify)
 - [Migration Steps (Elasticsearch)](#migration-steps-elasticsearch)
-    - [1. Determine the Data Size](#1-determine-the-data-size)
-    - [2. Create Backup](#2-create-backup)
-    - [3. Set Up AWS ES Proxy](#3-set-up-aws-es-proxy)
+    - [1. (Optional) Determine the Data Size](#1-optional-determine-the-data-size)
+    - [2. Dump Indices](#2-dump-indices)
+    - [3. Start AWS ES Proxy](#3-start-aws-es-proxy)
     - [4. Restore the Indices to the New Domain](#4-restore-the-indices-to-the-new-domain)
     - [5. Test and Verify](#5-test-and-verify)
 - [Additional Resources](#additional-resources)
@@ -55,9 +55,9 @@ The steps below provide a guide for creating backups of PostgreSQL databases and
 
 ```sh
 export DEPLOYMENT='development'
-export HOST='<RDS ENDPOINT>'
+export PGHOST='<RDS ENDPOINT>'
 export PGPASSWORD='<RDS PASSWORD>'
-export USER='<RDS USERNAME>'
+export USER='<RDS USER>'
 export DB_DUMP_DIR='/tmp/$DEPLOYMENT-db-dump'
 mkdir -p $DB_DUMP_DIR
 ```
@@ -81,32 +81,30 @@ dbs=(
 for db in "${dbs[@]}"
 do
   echo "Dumping: $db to $DB_DUMP_DIR/$db"
-  pg_dump -h $HOST -U $USER -W -d $db -f "$DB_DUMP_DIR/$db"
+  pg_dump -h $PGHOST -U $USER -W -d $db -f "$DB_DUMP_DIR/$db"
 done
 ```
 
 ## 3. Restore Dump Files
 
-- Reset the databases in the new environment by dropping existing databases and restoring from the dump files.
-
-### Update3 Environment Variables
+### Update Environment Variables
 
 ```sh
-export HOST='<NEW RDS ENDPOINT>'
+export PGHOST='<NEW RDS ENDPOINT>'
 export PGPASSWORD='<NEW RDS PASSWORD>'
 ```
 
 ### Restore Global Objects and Roles
 
-Restore global objects such as roles and tablespaces before restoring the individual databases.
+Restore global objects such as roles and tablespaces before restoring the individual databases:
 
 ```sh
-psql -h $NEW_HOST -U $NEW_USER -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
+psql -h $PGHOST -U $PGUSER -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
 ```
 
 ### Drop and Recreate Databases
 
-Ensure that old databases are dropped, and fresh databases are created.
+Ensure that old databases are dropped, and fresh databases are created:
 
 ```sh
 SERVICES=(
@@ -122,36 +120,36 @@ SERVICES=(
 )
 
 for DB in "${SERVICES[@]}"; do
-    psql -h $NEW_HOST -U $NEW_USER -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_$DEPLOYMENT' AND pid <> pg_backend_pid();"
-    psql -h $NEW_HOST -U $NEW_USER -c "DROP DATABASE IF EXISTS $DB_$DEPLOYMENT;"
-    psql -h $NEW_HOST -U $NEW_USER -c "CREATE DATABASE $DB_$DEPLOYMENT OWNER $NEW_USER;"
+    psql -h $PGHOST -U $PGUSER -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_$DEPLOYMENT' AND pid <> pg_backend_pid();"
+    psql -h $PGHOST -U $PGUSER -c "DROP DATABASE IF EXISTS $DB_$DEPLOYMENT;"
+    psql -h $PGHOST -U $PGUSER -c "CREATE DATABASE $DB_$DEPLOYMENT OWNER $PGUSER;"
 done
 ```
 
 ### Restore Databases
 
-Load the dump files into the newly created databases.
+Load the dump files into the newly created databases:
 
 ```sh
 for DB in "${SERVICES[@]}"; do
-    psql -h $NEW_HOST -U $NEW_USER -d $DB_$DEPLOYMENT -f "$DB_DUMP_DIR/$db"
+    psql -h $PGHOST -U $PGUSER -d $DB_$DEPLOYMENT -f "$DB_DUMP_DIR/$db"
 done
 ```
 
 ### Unset Environment Variables
 
-Remove sensitive information from the environment.
+Remove sensitive information from the environment:
 
 ```sh
 unset PGPASSWORD
-unset HOST
+unset PGHOST
 unset USER
 unset DB_DUMP_DIR
 ```
 
 ## 4. Update Helm Values
 
-- Update your Kubernetes deployment configurations to point to the new RDS instance.
+Update your Kubernetes deployment configurations to point to the new RDS instance:
 
 ```yaml
 global:
@@ -159,13 +157,13 @@ global:
   postgres:
     master:
       host: "<NEW RDS ENDPOINT>"
-      username: "<NEW RDS USERNAME>"
+      username: "<NEW RDS USER>"
       password: "<NEW RDS PASSWORD>"
 ```
 
 ## 5. Redeploy
 
-Redeploy and restart the Kubernetes deployments to apply the new configurations.
+Redeploy and restart the Kubernetes deployments to apply the new configurations:
 
 ```sh
 make $DEPLOYMENT
@@ -183,22 +181,18 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 
 # Migration Steps (Elasticsearch)
 
-The steps below guide you through the process of migrating Elasticsearch indices from an old domain to a new, smaller domain on AWS using the `elasticsearch-dump` tool.
+## 1. (Optional) Determine the Data Size
 
-## 1. Determine the Data Size
-
-- Use the `_cat/indices` API to check the total size of your Elasticsearch data.
+Curl `_cat/indices` to check the total size of the Elasticsearch data:
 
 ```sh
 curl -X GET "$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST/_cat/indices?v&h=index,store.size"
 ```
 
-## 2. Create Backup
-
-- Use `elasticsearch-dump` to back up all indices from the old domain.
+## 2. Dump Indices
 
 ```sh
-export NEW_ENDPOINT="<DOMAIN ENDPOINT>"
+export ES_ENDPOINT="<DOMAIN ENDPOINT>"
 export ES_EXPORT="/tmp/staging-es-dump"
 mkdir -p $ES_EXPORT
 
@@ -209,16 +203,13 @@ multielasticdump \
     --output="$ES_EXPORT"
 ```
 
-## 3. Set Up AWS ES Proxy
-
-- Download and set up `aws-es-proxy` to facilitate communication with the new Elasticsearch domain.
+## 3. Start AWS ES Proxy
 
 ```sh
-wget https://github.com/abutaha/aws-es-proxy/releases/download/v1.5/aws-es-proxy-1.5-linux-amd64
-chmod +x aws-es-proxy-1.5-linux-amd64
-aws-es-proxy -endpoint "$NEW_ENDPOINT"
+wget https://github.com/abutaha/aws-es-proxy/releases/download/v1.5/aws-es-proxy-1.5-linux-amd64 -O aws-es-proxy
+chmod +x aws-es-proxy
+./aws-es-proxy -endpoint "$ES_ENDPOINT" &
 
-# In another window
 curl localhost:9200/_cat/indices
 # green open .kibana_1            pXhB98GhQbahWs6CVm_wVw 1 0 1 0    5kb    5kb
 # green open .opendistro_security fhNILwnQQTaHVHIq9EP0-w 1 0 9 0 70.7kb 70.7kb
@@ -226,7 +217,7 @@ curl localhost:9200/_cat/indices
 
 ## 4. Restore the Indices to the New Domain
 
-- Load the backed-up indices into the new domain using `elasticsearch-dump`.
+Load the backed-up indices into the new domain using [multielasticdump](https://github.com/elasticsearch-dump/elasticsearch-dump?tab=readme-ov-file#multielasticdump):
 
 ```sh
 multielasticdump \
