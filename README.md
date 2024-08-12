@@ -49,8 +49,6 @@ The steps below provide a guide for creating backups of PostgreSQL databases and
 
 ## 2. Create Dump Files
 
-- Use `pg_dumpall` and `pg_dump` to generate the necessary dump files, including global objects, roles, and individual databases.
-
 ### Set Environment Variables
 
 ```sh
