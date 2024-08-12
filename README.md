@@ -130,6 +130,8 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 ```
 
+---
+
 ## Backup Steps (Elasticsearch)
 
 The steps below guide you through the process of migrating Elasticsearch
