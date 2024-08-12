@@ -19,63 +19,91 @@
 
 </div>
 
+- [About](#about)
 - [Backup Steps (RDS)](#backup-steps-rds)
-    - [1. Set Up Environment Variables](#1-set-up-environment-variables)
-    - [2. Restore Global Objects and Roles](#2-restore-global-objects-and-roles)
-    - [3. Drop and Recreate Databases](#3-drop-and-recreate-databases)
-    - [4. Restore Each Database from the Dump Files](#4-restore-each-database-from-the-dump-files)
-    - [5. Unset Environment Variables](#5-unset-environment-variables)
-    - [6. Redeploy Services](#6-redeploy-services)
+    - [1. Create New Database](#1-create-new-database)
+    - [2. Create Dump Files](#2-create-dump-files)
+    - [3. Restore Dump Files](#3-restore-dump-files)
+    - [4. Update Helm Values](#4-update-helm-values)
+    - [5. Redeploy](#5-redeploy)
+    - [6. Test and Verify](#6-test-and-verify)
 - [Backup Steps (Elasticsearch)](#backup-steps-elasticsearch)
+    - [1. Determine the Data Size](#1-determine-the-data-size)
+    - [2. Create Backup](#2-create-backup)
+    - [3. Set Up AWS ES Proxy](#3-set-up-aws-es-proxy)
+    - [4. Test and Verify](#4-test-and-verify)
 - [Additional Resources](#additional-resources)
 
 ---
 
-<!-- omit in toc -->
 # About
 
-This project involves the migration of PostgreSQL databases and Elasticsearch indices from an older environment to a new environment on AWS. The steps below provide a guide for creating backups, restoring them to the new environment, and ensuring everything is configured correctly.
+The steps below provide a guide for creating backups of PostgreSQL databases and Elasticsearch indices, restoring them to the new environment, and ensuring everything is configured correctly.
 
-## Backup Steps (RDS)
+# Backup Steps (RDS)
 
-1. **Create New Database in AWS Console**:
-    - Set up the new RDS instance in the AWS console with the appropriate configurations.
+## 1. Create New Database
 
-2. **Create Database Dump Files from Old Database**:
-    - Use `pg_dumpall` and `pg_dump` to generate the necessary dump files, including global objects, roles, and individual databases.
+- Set up the new RDS instance in the AWS console with the appropriate configurations.
 
-3. **Restore Database Dump Files to New Database**:
-    - Reset the databases in the new environment by dropping existing databases and restoring from the dump files.
+## 2. Create Dump Files
 
-4. **Update PostgreSQL Values in `values.yaml`**:
-    - Update your Kubernetes deployment configurations to point to the new RDS instance.
+- Use `pg_dumpall` and `pg_dump` to generate the necessary dump files, including global objects, roles, and individual databases.
 
-5. **Redeploy to Target the New Database**:
-    - Use `kubectl` to redeploy your services with the updated configurations.
-
-6. **Test Logging In and Downloading Files**:
-    - Ensure that the application can connect to the new database and that all functionalities are working as expected.
-
-### 1. Set Up Environment Variables
+### Set Environment Variables
 
 ```sh
-export DEPLOYMENT='staging'
-export NEW_HOST="$DEPLOYMENT-postgres.czyvh9aiqz6s.us-west-2.rds.amazonaws.com"
-export NEW_USER="postgres"
-export PGPASSWORD='example-password'
-export DB_EXPORT="/tmp/$DEPLOYMENT-db-dump"
-mkdir -p $ES_EXPOR
+export DEPLOYMENT='development'
+export HOST='<RDS ENDPOINT>'
+export PGPASSWORD='<RDS PASSWORD>'
+export USER='<RDS USERNAME>'
+export DB_DUMP_DIR='/tmp/$DEPLOYMENT-db-dump'
+mkdir -p $DB_DUMP_DIR
 ```
 
-### 2. Restore Global Objects and Roles
+### Dump Databases
+
+```sh
+dbs=(
+  arborist
+  audit
+  fence
+  indexd
+  metadata
+  peregrine
+  requestor
+  sheepdog
+  wts
+)
+
+# Loop through each database and perform the dump
+for db in "${dbs[@]}"
+do
+  echo "Dumping: $db to $DB_DUMP_DIR/$db"
+  pg_dump -h $HOST -U $USER -W -d $db -f "$DB_DUMP_DIR/$db"
+done
+```
+
+## 3. Restore Dump Files
+
+- Reset the databases in the new environment by dropping existing databases and restoring from the dump files.
+
+### Update3 Environment Variables
+
+```sh
+export HOST='<NEW RDS ENDPOINT>'
+export PGPASSWORD='<NEW RDS PASSWORD>'
+```
+
+### Restore Global Objects and Roles
 
 Restore global objects such as roles and tablespaces before restoring the individual databases.
 
 ```sh
-psql -h $NEW_HOST -U $NEW_USER -f "$DB_EXPORT/$DEPLOYMENT_globals.sql"
+psql -h $NEW_HOST -U $NEW_USER -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
 ```
 
-### 3. Drop and Recreate Databases
+### Drop and Recreate Databases
 
 Ensure that old databases are dropped, and fresh databases are created.
 
@@ -99,59 +127,77 @@ for DB in "${SERVICES[@]}"; do
 done
 ```
 
-### 4. Restore Each Database from the Dump Files
+### Restore Databases
 
 Load the dump files into the newly created databases.
 
 ```sh
 for DB in "${SERVICES[@]}"; do
-    psql -h $NEW_HOST -U $NEW_USER -d $DB_$DEPLOYMENT -f "$DB_EXPORT/$db"
+    psql -h $NEW_HOST -U $NEW_USER -d $DB_$DEPLOYMENT -f "$DB_DUMP_DIR/$db"
 done
 ```
 
-### 5. Unset Environment Variables
+### Unset Environment Variables
 
-Remove sensitive information from your environment.
+Remove sensitive information from the environment.
 
 ```sh
 unset PGPASSWORD
-unset NEW_HOST
-unset NEW_USER
-unset DB_EXPORT
+unset HOST
+unset USER
+unset DB_DUMP_DIR
 ```
 
-### 6. Redeploy Services
+## 4. Update Helm Values
 
-Restart the Kubernetes deployments to apply the new configurations.
+- Update your Kubernetes deployment configurations to point to the new RDS instance.
+
+```yaml
+global:
+  # RDS configuration
+  postgres:
+    master:
+      host: "<NEW RDS ENDPOINT>"
+      username: "<NEW RDS USERNAME>"
+      password: "<NEW RDS PASSWORD>"
+```
+
+## 5. Redeploy
+
+Redeploy and restart the Kubernetes deployments to apply the new configurations.
 
 ```sh
+make $DEPLOYMENT
+
 for SERVICE in "${SERVICES[@]}"; do
     kubectl rollout restart "deployment/$SERVICE-deployment"
 done
 ```
 
+## 6. Test and Verify
+
+Ensure that Frontend Framework can connect to the new database and that file downloads are working as expected.
+
 ---
 
-## Backup Steps (Elasticsearch)
+# Backup Steps (Elasticsearch)
 
-The steps below guide you through the process of migrating Elasticsearch
-indices from an old domain to a new, smaller domain on AWS using the
-`elasticsearch-dump` tool.
+The steps below guide you through the process of migrating Elasticsearch indices from an old domain to a new, smaller domain on AWS using the `elasticsearch-dump` tool.
 
-1. **Determine the Total Size of Data in the Old Domain**:
+## 1. Determine the Data Size
 
 - Use the `_cat/indices` API to check the total size of your Elasticsearch data.
 
 ```sh
-curl -X GET "http://<old-elasticsearch-endpoint>/_cat/indices?v&h=index,store.size"
+curl -X GET "$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST/_cat/indices?v&h=index,store.size"
 ```
 
-2. **Create a Backup of All Indices**:
+## 2. Create Backup
 
 - Use `elasticsearch-dump` to back up all indices from the old domain.
 
 ```sh
-export NEW_ENDPOINT="https://vpc-staging-domain-46eebau2il7sslb6o5oulpd2bi.us-west-2.es.amazonaws.com"
+export NEW_ENDPOINT="<DOMAIN ENDPOINT>"
 export ES_EXPORT="/tmp/staging-es-dump"
 mkdir -p $ES_EXPORT
 
@@ -161,8 +207,8 @@ multielasticdump \
     --input=http://$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST:9200 \
     --output="$ES_EXPORT"
 ```
-            
-3. **Set Up AWS ES Proxy for New Domain**:
+
+## 3. Set Up AWS ES Proxy
 
 - Download and set up `aws-es-proxy` to facilitate communication with the new Elasticsearch domain.
 
@@ -204,8 +250,12 @@ curl localhost:9200/_cat/indices
 # yellow open gen3.aced.io_patient-array-config_0     PUJKLsY8RPW191Mnzed-9Q 5 1   1 0  4.8kb  4.8kb
 ```
 
+## 4. Test and Verify
+
+Ensure that Frontend Framework can connect to the new database and that file downloads are working as expected.
+
 ---
-            
-## Additional Resources    
+
+# Additional Resources
 
 - **[ohsu-comp-bio/load-testing](https://github.com/ohsu-comp-bio/load-testing)**: Load testing and benchmarking of the Gen3 system with `k6`
