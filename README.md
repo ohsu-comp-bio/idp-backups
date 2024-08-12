@@ -20,18 +20,19 @@
 </div>
 
 - [About](#about)
-- [Backup Steps (RDS)](#backup-steps-rds)
+- [Migration Steps (RDS)](#migration-steps-rds)
     - [1. Create New Database](#1-create-new-database)
     - [2. Create Dump Files](#2-create-dump-files)
     - [3. Restore Dump Files](#3-restore-dump-files)
     - [4. Update Helm Values](#4-update-helm-values)
     - [5. Redeploy](#5-redeploy)
     - [6. Test and Verify](#6-test-and-verify)
-- [Backup Steps (Elasticsearch)](#backup-steps-elasticsearch)
+- [Migration Steps (Elasticsearch)](#migration-steps-elasticsearch)
     - [1. Determine the Data Size](#1-determine-the-data-size)
     - [2. Create Backup](#2-create-backup)
     - [3. Set Up AWS ES Proxy](#3-set-up-aws-es-proxy)
-    - [4. Test and Verify](#4-test-and-verify)
+    - [4. Restore the Indices to the New Domain](#4-restore-the-indices-to-the-new-domain)
+    - [5. Test and Verify](#5-test-and-verify)
 - [Additional Resources](#additional-resources)
 
 ---
@@ -40,7 +41,7 @@
 
 The steps below provide a guide for creating backups of PostgreSQL databases and Elasticsearch indices, restoring them to the new environment, and ensuring everything is configured correctly.
 
-# Backup Steps (RDS)
+# Migration Steps (RDS)
 
 ## 1. Create New Database
 
@@ -180,7 +181,7 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 
 ---
 
-# Backup Steps (Elasticsearch)
+# Migration Steps (Elasticsearch)
 
 The steps below guide you through the process of migrating Elasticsearch indices from an old domain to a new, smaller domain on AWS using the `elasticsearch-dump` tool.
 
@@ -223,7 +224,7 @@ curl localhost:9200/_cat/indices
 # green open .opendistro_security fhNILwnQQTaHVHIq9EP0-w 1 0 9 0 70.7kb 70.7kb
 ```
 
-4.  **Restore the Indices to the New Domain**:
+## 4. Restore the Indices to the New Domain
 
 - Load the backed-up indices into the new domain using `elasticsearch-dump`.
 
@@ -250,7 +251,7 @@ curl localhost:9200/_cat/indices
 # yellow open gen3.aced.io_patient-array-config_0     PUJKLsY8RPW191Mnzed-9Q 5 1   1 0  4.8kb  4.8kb
 ```
 
-## 4. Test and Verify
+## 5. Test and Verify
 
 Ensure that Frontend Framework can connect to the new database and that file downloads are working as expected.
 
