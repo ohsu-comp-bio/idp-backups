@@ -43,6 +43,8 @@
 
 The steps below provide a guide for creating backups of PostgreSQL databases and Elasticsearch indices, restoring them to the new environment, and ensuring everything is configured correctly.
 
+While the specific examples involve migrating data between specific platforms (AWS Aurora, RDS, and ElasticSearch), the same steps should be applicable for data transfers between any standard PostgreSQL and ElasticSearch endpoints.
+
 # Migration Steps (RDS)
 
 <h1 align="center">
