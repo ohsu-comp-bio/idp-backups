@@ -10,7 +10,6 @@ repos:
     - id: check-shebang-scripts-are-executable
     - id: check-yaml
     - id: detect-private-key # detect-private-key is not in repo
-    - id: end-of-file-fixer #Makes sure files end in a newline and only a newline
     - id: mixed-line-ending
     - id: trailing-whitespace
 
