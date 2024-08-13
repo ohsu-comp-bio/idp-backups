@@ -1,0 +1,28 @@
+repos:
+
+# Source: https://github.com/ACED-IDP/gen3_util/blob/development/.pre-commit-config.yaml
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+    - id: check-added-large-files
+      args: [--maxkb=5120]
+    - id: check-case-conflict #Check for files with names that would conflict on a case-insensitive filesystem like MacOS HFS+ or Windows FAT
+    - id: check-shebang-scripts-are-executable
+    - id: check-yaml
+    - id: detect-private-key # detect-private-key is not in repo
+    - id: end-of-file-fixer #Makes sure files end in a newline and only a newline
+    - id: mixed-line-ending
+    - id: trailing-whitespace
+
+# Source: https://github.com/awslabs/git-secrets/issues/189
+# Known error: https://github.com/awslabs/git-secrets/issues/256
+- repo: https://github.com/awslabs/git-secrets
+  rev: 5357e18bc27b42a827b6780564ea873a72ca1f01
+  hooks:
+    - id: git-secrets
+      entry: /usr/bin/env
+      args:
+        # Using a bash script to ensure aws secrets rules is always installed.
+        - bash
+        - -c
+        - echo "Using aws secrets rules" && git-secrets --register-aws && git-secrets --pre_commit_hook

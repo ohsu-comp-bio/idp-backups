@@ -34,7 +34,7 @@
     - [4. Restore Indices](#4-restore-indices)
     - [5. Update Helm Values](#5-update-helm-values)
     - [6. Deploy](#6-deploy)
-    - [5. Test and Verify](#5-test-and-verify)
+    - [7. Test and Verify](#7-test-and-verify)
 - [Additional Resources](#additional-resources)
 
 ---
@@ -44,6 +44,10 @@
 The steps below provide a guide for creating backups of PostgreSQL databases and Elasticsearch indices, restoring them to the new environment, and ensuring everything is configured correctly.
 
 # Migration Steps (RDS)
+
+<h1 align="center">
+    <img src="./docs/rds.svg" alt="RDS" height="200">
+</h1>
 
 ## 1. Create New Database
 
@@ -180,6 +184,10 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 ---
 
 # Migration Steps (Elasticsearch)
+
+<h1 align="center">
+    <img src="./docs/es.svg" alt="ES" height="200">
+</h1>
 
 ## 1. (Optional) Determine the Data Size
 
