@@ -46,7 +46,7 @@ The steps below provide a guide for creating backups of PostgreSQL databases and
 # Migration Steps (RDS)
 
 <h1 align="center">
-    <img src="./docs/rds.svg" alt="RDS" height="200">
+    <img src="./docs/rds.png" alt="RDS" height="250">
 </h1>
 
 ## 1. Create New Database
@@ -186,7 +186,7 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 # Migration Steps (Elasticsearch)
 
 <h1 align="center">
-    <img src="./docs/es.svg" alt="ES" height="200">
+    <img src="./docs/es.png" alt="ES" height="250">
 </h1>
 
 ## 1. (Optional) Determine the Data Size
