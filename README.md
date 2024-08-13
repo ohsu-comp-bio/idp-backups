@@ -266,7 +266,7 @@ make $DEPLOYMENT
 kubectl rollout restart aws-es-proxy-deployment
 ```
 
-## 5. Test and Verify
+## 7. Test and Verify
 
 Ensure that Frontend Framework can connect to the new database and that file downloads are working as expected.
 
