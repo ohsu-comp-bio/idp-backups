@@ -25,13 +25,15 @@
     - [2. Create Dump Files](#2-create-dump-files)
     - [3. Restore Dump Files](#3-restore-dump-files)
     - [4. Update Helm Values](#4-update-helm-values)
-    - [5. Redeploy](#5-redeploy)
+    - [5. Deploy](#5-deploy)
     - [6. Test and Verify](#6-test-and-verify)
 - [Migration Steps (Elasticsearch)](#migration-steps-elasticsearch)
     - [1. (Optional) Determine the Data Size](#1-optional-determine-the-data-size)
     - [2. Dump Indices](#2-dump-indices)
     - [3. Start AWS ES Proxy](#3-start-aws-es-proxy)
-    - [4. Restore the Indices to the New Domain](#4-restore-the-indices-to-the-new-domain)
+    - [4. Restore Indices](#4-restore-indices)
+    - [5. Update Helm Values](#5-update-helm-values)
+    - [6. Deploy](#6-deploy)
     - [5. Test and Verify](#5-test-and-verify)
 - [Additional Resources](#additional-resources)
 
@@ -147,7 +149,7 @@ unset DB_DUMP_DIR
 
 ## 4. Update Helm Values
 
-Update your Kubernetes deployment configurations to point to the new RDS instance:
+Update `values.yaml` to point to the new RDS instance:
 
 ```yaml
 global:
@@ -159,15 +161,15 @@ global:
       password: "<NEW RDS PASSWORD>"
 ```
 
-## 5. Redeploy
+## 5. Deploy
 
-Redeploy and restart the Kubernetes deployments to apply the new configurations:
+Deploy the changes and restart the Kubernetes deployments to apply the new configurations:
 
 ```sh
 make $DEPLOYMENT
 
 for SERVICE in "${SERVICES[@]}"; do
-    kubectl rollout restart "deployment/$SERVICE-deployment"
+    kubectl rollout restart deployment/$SERVICE-deployment
 done
 ```
 
@@ -213,7 +215,7 @@ curl localhost:9200/_cat/indices
 # green open .opendistro_security fhNILwnQQTaHVHIq9EP0-w 1 0 9 0 70.7kb 70.7kb
 ```
 
-## 4. Restore the Indices to the New Domain
+## 4. Restore Indices
 
 Load the backed-up indices into the new domain using [multielasticdump](https://github.com/elasticsearch-dump/elasticsearch-dump?tab=readme-ov-file#multielasticdump):
 
@@ -238,6 +240,30 @@ curl localhost:9200/_cat/indices
 # yellow open gen3.aced.io_patient_0                  irvIWySsSg2TVpKO91D_jw 5 1  13 0   34kb   34kb
 # yellow open default-commons-config-index            -2yTyNV6QQuAPYSK9fyLYw 5 1   1 0  4.2kb  4.2kb
 # yellow open gen3.aced.io_patient-array-config_0     PUJKLsY8RPW191Mnzed-9Q 5 1   1 0  4.8kb  4.8kb
+```
+
+## 5. Update Helm Values
+
+Update `values.yaml` to point to the new ES Domain:
+
+```yaml
+# ElasticSearch/OpenSearch configuration
+aws-es-proxy:
+  enabled: true
+  esEndpoint: "<ES ENDPOINT>"
+  secrets:
+    awsAccessKeyId: "<AWS ACCESS KEY>"
+    awsSecretAccessKey: "<AWS SECRET KEY>"
+```
+
+## 6. Deploy
+
+Deploy the changes and restart the `aws-es-proxy-deployment` to apply the new configurations:
+
+```sh
+make $DEPLOYMENT
+
+kubectl rollout restart aws-es-proxy-deployment
 ```
 
 ## 5. Test and Verify
