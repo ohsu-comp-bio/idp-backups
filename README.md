@@ -73,7 +73,7 @@ Note all information that is backed by the PostgreSQL databases, specifically:
 These values are expected to remain the same for all users given a successful migration.
 
 > [!TIP]
-> This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#6-test-and-verify).
+> This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#7-test-and-verify).
 
 ## 2. Create New Database
 
