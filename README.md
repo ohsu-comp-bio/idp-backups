@@ -48,7 +48,8 @@ The steps below provide a guide for creating backups of PostgreSQL databases and
 
 Each of the following steps be run incrementally, with the option to rollback at any time.
 
-*Note:* While the specific examples involve migrating data between specific platforms (AWS Aurora, RDS, and ElasticSearch), the same steps should be applicable for data transfers between any standard PostgreSQL and ElasticSearch endpoints.
+> [!TIP]
+> While the specific examples involve migrating data between specific platforms (AWS Aurora, RDS, and ElasticSearch), the same steps should be applicable for data transfers between any standard PostgreSQL and ElasticSearch endpoints.
 
 # Migration Steps (RDS)
 
@@ -74,7 +75,8 @@ Note all information that is backed by the PostgreSQL databases, specifically:
 
 If the migration is successful then both items are expected to remain the same for all users.
 
-Note that this method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#6-test-and-verify).
+> [!TIP]
+> This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#6-test-and-verify).
 
 ## 2. Create New Database
 
@@ -236,7 +238,8 @@ Note all information that is backed by the PostgreSQL databases, specifically:
 
 If the migration is successful then both items are expected to remain the same for all users.
 
-Note that this method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 6. Test and Verify](#6-test-and-verify).
+> [!TIP]
+> This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 6. Test and Verify](#6-test-and-verify).
 
 Curl `_cat/indices` to check the total size of the Elasticsearch data:
 
