@@ -63,17 +63,14 @@ Each of the following steps be run incrementally, with the option to rollback at
 
 Notify users that the IDP will be set to read-only to prevent data loss during the migration.
 
-TODO: Able to set Postgres to read-only?
-
 ## 1. Record State
 
 Record the state of the IDP before any modifications are made to be able to help verify that the migration was successful.
 
 Note all information that is backed by the PostgreSQL databases, specifically:
-- The number of existing Patients and Files for each project in the Explorer Page
-- Existing permissions (e.g. `curl https://aced-idp.org/user/user > permissions.json`)
+- Existing permissions (e.g. Saving https://aced-idp.org/user/user to user-old.json)
 
-If the migration is successful then both items are expected to remain the same for all users.
+These values are expected to remain the same for all users given a successful migration.
 
 > [!TIP]
 > This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#6-test-and-verify).
@@ -226,17 +223,13 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 
 Notify users that the IDP will be set to read-only to prevent data loss during the migration.
 
-TODO: Able to set ElasticSearch to read-only?
-
 ## 1. Record State
 
 Record the state of the IDP before any modifications are made to be able to help verify that the migration was successful.
 
-Note all information that is backed by the PostgreSQL databases, specifically:
-- The number of existing Patients and Files for each project in the Explorer Page
-- Existing permissions (e.g. Saving https://aced-idp.org/user/user to `user.json`)
+Note all information that is backed by the ElasticSearch indices, specifically the number of existing Patients and Files for each project in the Explorer Page.
 
-If the migration is successful then both items are expected to remain the same for all users.
+These values are expected to remain the same for all users given a successful migration.
 
 > [!TIP]
 > This method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 6. Test and Verify](#6-test-and-verify).
