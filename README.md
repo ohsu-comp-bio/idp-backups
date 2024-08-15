@@ -232,7 +232,7 @@ Record the state of the IDP before any modifications are made to be able to help
 
 Note all information that is backed by the PostgreSQL databases, specifically:
 - The number of existing Patients and Files for each project in the Explorer Page
-- Existing permissions (e.g. `curl https://aced-idp.org/user/user > permissions.json`)
+- Existing permissions (e.g. Saving https://aced-idp.org/user/user to `user.json`)
 
 If the migration is successful then both items are expected to remain the same for all users.
 
