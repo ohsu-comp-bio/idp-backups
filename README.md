@@ -21,20 +21,23 @@
 
 - [About](#about)
 - [Migration Steps (RDS)](#migration-steps-rds)
-    - [1. Create New Database](#1-create-new-database)
-    - [2. Create Dump Files](#2-create-dump-files)
-    - [3. Restore Dump Files](#3-restore-dump-files)
-    - [4. Update Helm Values](#4-update-helm-values)
-    - [5. Deploy](#5-deploy)
-    - [6. Test and Verify](#6-test-and-verify)
+  - [0. Set Databases to Read-Only](#0-set-databases-to-read-only)
+  - [1. Record State](#1-record-state)
+  - [2. Create New Database](#2-create-new-database)
+  - [3. Create Dump Files](#3-create-dump-files)
+  - [4. Restore Dump Files](#4-restore-dump-files)
+  - [5. Update Helm Values](#5-update-helm-values)
+  - [6. Deploy](#6-deploy)
+  - [7. Test and Verify](#7-test-and-verify)
 - [Migration Steps (Elasticsearch)](#migration-steps-elasticsearch)
-    - [1. (Optional) Determine the Data Size](#1-optional-determine-the-data-size)
-    - [2. Dump Indices](#2-dump-indices)
-    - [3. Start AWS ES Proxy](#3-start-aws-es-proxy)
-    - [4. Restore Indices](#4-restore-indices)
-    - [5. Update Helm Values](#5-update-helm-values)
-    - [6. Deploy](#6-deploy)
-    - [7. Test and Verify](#7-test-and-verify)
+  - [0. Set Indices to Read-Only](#0-set-indices-to-read-only)
+  - [1. Record State](#1-record-state-1)
+  - [2. Dump Indices](#2-dump-indices)
+  - [3. Start AWS ES Proxy](#3-start-aws-es-proxy)
+  - [4. Restore Indices](#4-restore-indices)
+  - [5. Update Helm Values](#5-update-helm-values-1)
+  - [6. Deploy](#6-deploy-1)
+  - [7. Test and Verify](#7-test-and-verify-1)
 - [Additional Resources](#additional-resources)
 
 ---
@@ -43,22 +46,44 @@
 
 The steps below provide a guide for creating backups of PostgreSQL databases and Elasticsearch indices, restoring them to the new environment, and ensuring everything is configured correctly.
 
+Each of the following steps be run incrementally, with the option to rollback at any time.
+
 # Migration Steps (RDS)
 
 <h1 align="center">
+  <a title="Diagram source" href="https://www.figma.com/board/nrsDRwAAeSnt3gyXgA0y4V/IDP-Backup-%2B-Migration-Diagrams?node-id=0-1&t=2fG7FnSeWfNMfLJL-1">
     <img src="./docs/rds.png" alt="RDS" height="250">
+  <a>
 </h1>
 
-## 1. Create New Database
+## 0. Set Databases to Read-Only
+
+Notify users that the IDP will be set to read-only to prevent data loss during the migration.
+
+TODO: Able to set Postgres to read-only?
+
+## 1. Record State
+
+Record the state of the IDP before any modifications are made to be able to help verify that the migration was successful.
+
+Note all information that is backed by the PostgreSQL databases, specifically:
+- The number of existing Patients and Files for each project in the Explorer Page
+- Existing permissions (e.g. `curl https://aced-idp.org/user/user > permissions.json`)
+
+If the migration is successful then both items are expected to remain the same for all users.
+
+Note that this method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 7. Test and Verify](#6-test-and-verify).
+
+## 2. Create New Database
 
 Set up the new RDS instance in the AWS console with the appropriate configurations.
 
-## 2. Create Dump Files
+## 3. Create Dump Files
 
 ### Set Environment Variables
 
 ```sh
-export DEPLOYMENT='development'
+export DEPLOYMENT='<DEPLOYMENT>'
 export PGHOST='<RDS ENDPOINT>'
 export PGPASSWORD='<RDS PASSWORD>'
 export USER='<RDS USER>'
@@ -89,7 +114,7 @@ do
 done
 ```
 
-## 3. Restore Dump Files
+## 4. Restore Dump Files
 
 ### Update Environment Variables
 
@@ -151,7 +176,7 @@ unset USER
 unset DB_DUMP_DIR
 ```
 
-## 4. Update Helm Values
+## 5. Update Helm Values
 
 Update `values.yaml` to point to the new RDS instance:
 
@@ -165,11 +190,13 @@ global:
       password: "<NEW RDS PASSWORD>"
 ```
 
-## 5. Deploy
+## 6. Deploy
 
 Deploy the changes and restart the Kubernetes deployments to apply the new configurations:
 
 ```sh
+# Delete all existing database jobs to ensure they run during the redeployment
+kubectl delete pods -l app=gen3job
 make $DEPLOYMENT
 
 for SERVICE in "${SERVICES[@]}"; do
@@ -177,7 +204,7 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 ```
 
-## 6. Test and Verify
+## 7. Test and Verify
 
 Ensure that Frontend Framework can connect to the new database and that file downloads are working as expected.
 
@@ -186,10 +213,28 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 # Migration Steps (Elasticsearch)
 
 <h1 align="center">
+  <a title="Diagram source" href="https://www.figma.com/board/nrsDRwAAeSnt3gyXgA0y4V/IDP-Backup-%2B-Migration-Diagrams?node-id=0-1&t=2fG7FnSeWfNMfLJL-1">
     <img src="./docs/es.png" alt="ES" height="250">
+  </a>
 </h1>
 
-## 1. (Optional) Determine the Data Size
+## 0. Set Indices to Read-Only
+
+Notify users that the IDP will be set to read-only to prevent data loss during the migration.
+
+TODO: Able to set ElasticSearch to read-only?
+
+## 1. Record State
+
+Record the state of the IDP before any modifications are made to be able to help verify that the migration was successful.
+
+Note all information that is backed by the PostgreSQL databases, specifically:
+- The number of existing Patients and Files for each project in the Explorer Page
+- Existing permissions (e.g. `curl https://aced-idp.org/user/user > permissions.json`)
+
+If the migration is successful then both items are expected to remain the same for all users.
+
+Note that this method only records data for a single user and doesn't gurantee that the migration was successful for everyone else. However it does provide a quick comparison point, with more extensive validation in [Step 6. Test and Verify](#6-test-and-verify).
 
 Curl `_cat/indices` to check the total size of the Elasticsearch data:
 
