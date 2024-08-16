@@ -325,4 +325,5 @@ Ensure that Frontend Framework can connect to the new database and that file dow
 
 # Additional Resources
 
-- **[ohsu-comp-bio/load-testing](https://github.com/ohsu-comp-bio/load-testing)**: Load testing and benchmarking of the Gen3 system with `k6`
+- **[ohsu-comp-bio/load-testing](https://github.com/ohsu-comp-bio/load-testing)**: Load testing and benchmarking of the Gen3 system with [`k6`](https://k6.io/)
+
