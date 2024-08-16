@@ -88,7 +88,7 @@ export DEPLOYMENT='<DEPLOYMENT>'
 export PGHOST='<RDS ENDPOINT>'
 export PGPASSWORD='<RDS PASSWORD>'
 export USER='<RDS USER>'
-export DB_DUMP_DIR='/tmp/$DEPLOYMENT-db-dump'
+export DB_DUMP_DIR="/tmp/$DEPLOYMENT-db-dump"
 mkdir -p $DB_DUMP_DIR
 ```
 
