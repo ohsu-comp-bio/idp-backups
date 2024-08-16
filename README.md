@@ -68,7 +68,7 @@ Notify users that the IDP will be set to read-only to prevent data loss during t
 Record the state of the IDP before any modifications are made to be able to help verify that the migration was successful.
 
 Note all information that is backed by the PostgreSQL databases, specifically:
-- Existing permissions (e.g. Saving https://aced-idp.org/user/user to user-old.json)
+- Existing permissions (e.g. JSON contents of https://aced-idp.org/user/user)
 
 These values are expected to remain the same for all users given a successful migration.
 
