@@ -122,9 +122,9 @@ Restore global objects such as roles and tablespaces before restoring the indivi
 psql -h $PGHOST -U $PGUSER -f "$DB_DUMP_DIR/${DEPLOYMENT}_globals.sql"
 ```
 
-### Drop and Recreate Databases
+### Create New Databases
 
-Ensure that old databases are dropped, and fresh databases are created:
+Ensure that the new databases are created:
 
 ```sh
 SERVICES=(
@@ -140,8 +140,6 @@ SERVICES=(
 )
 
 for DB in "${SERVICES[@]}"; do
-    psql -h $PGHOST -U $PGUSER -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB}_${DEPLOYMENT}' AND pid <> pg_backend_pid();"
-    psql -h $PGHOST -U $PGUSER -c "DROP DATABASE IF EXISTS ${DB}_${DEPLOYMENT};"
     psql -h $PGHOST -U $PGUSER -c "CREATE DATABASE ${DB}_${DEPLOYMENT} OWNER $PGUSER;"
 done
 ```
