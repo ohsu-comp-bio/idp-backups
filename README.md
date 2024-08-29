@@ -225,7 +225,7 @@ These values are expected to remain the same for all users given a successful mi
 Curl `_cat/indices` to check the total size of the Elasticsearch data:
 
 ```sh
-curl -X GET "$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST/_cat/indices?v&h=index,store.size"
+curl -X GET "$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST:9200/_cat/indices?v&h=index,store.size"
 ```
 
 ## 2. Dump Indices
