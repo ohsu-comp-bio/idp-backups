@@ -80,7 +80,7 @@ mkdir -p $DB_DUMP_DIR
 Dump global objects such as roles and tablespaces before dumping the individual databases:
 
 ```sh
-pg_dumpall -h $PGHOST -U postgres -W --globals-only -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
+pg_dumpall -h $PGHOST -U postgres -W --globals-only -f "$DB_DUMP_DIR/${DEPLOYMENT}_globals.sql"
 ```
 
 ### Dump Databases
@@ -119,7 +119,7 @@ export PGHOST='<NEW RDS ENDPOINT>'
 Restore global objects such as roles and tablespaces before restoring the individual databases:
 
 ```sh
-psql -h $PGHOST -U $PGUSER -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
+psql -h $PGHOST -U $PGUSER -f "$DB_DUMP_DIR/${DEPLOYMENT}_globals.sql"
 ```
 
 ### Drop and Recreate Databases
