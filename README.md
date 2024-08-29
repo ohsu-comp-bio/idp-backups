@@ -21,23 +21,7 @@
 
 - [About](#about)
 - [Migration Steps (RDS)](#migration-steps-rds)
-  - [0. Set Databases to Read-Only](#0-set-databases-to-read-only)
-  - [1. Record State](#1-record-state)
-  - [2. Create New Database](#2-create-new-database)
-  - [3. Create Dump Files](#3-create-dump-files)
-  - [4. Restore Dump Files](#4-restore-dump-files)
-  - [5. Update Helm Values](#5-update-helm-values)
-  - [6. Deploy](#6-deploy)
-  - [7. Test and Verify](#7-test-and-verify)
 - [Migration Steps (Elasticsearch)](#migration-steps-elasticsearch)
-  - [0. Set Indices to Read-Only](#0-set-indices-to-read-only)
-  - [1. Record State](#1-record-state-1)
-  - [2. Dump Indices](#2-dump-indices)
-  - [3. Start AWS ES Proxy](#3-start-aws-es-proxy)
-  - [4. Restore Indices](#4-restore-indices)
-  - [5. Update Helm Values](#5-update-helm-values-1)
-  - [6. Deploy](#6-deploy-1)
-  - [7. Test and Verify](#7-test-and-verify-1)
 - [Additional Resources](#additional-resources)
 
 ---
