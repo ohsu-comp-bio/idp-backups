@@ -75,6 +75,14 @@ export DB_DUMP_DIR="/tmp/$DEPLOYMENT-db-dump"
 mkdir -p $DB_DUMP_DIR
 ```
 
+### Dump Global Objects and Roles
+
+Dump global objects such as roles and tablespaces before dumping the individual databases:
+
+```sh
+pg_dumpall -h $PGHOST -U postgres -W --globals-only -f "$DB_DUMP_DIR/$DEPLOYMENT_globals.sql"
+```
+
 ### Dump Databases
 
 ```sh
