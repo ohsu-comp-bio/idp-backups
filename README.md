@@ -112,7 +112,6 @@ done
 
 ```sh
 export PGHOST='<NEW RDS ENDPOINT>'
-export PGPASSWORD='<NEW RDS PASSWORD>'
 ```
 
 ### Restore Global Objects and Roles
