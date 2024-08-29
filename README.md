@@ -94,7 +94,7 @@ dbs=(
 for db in "${dbs[@]}"
 do
   echo "Dumping: $db to $DB_DUMP_DIR/$db"
-  pg_dump -h $PGHOST -U $USER -W -d $db_$DEPLOYMENT -f "$DB_DUMP_DIR/$db"
+  pg_dump -h $PGHOST -U $USER -W -d ${db}_${DEPLOYMENT} -f "$DB_DUMP_DIR/$db"
 done
 ```
 
@@ -133,9 +133,9 @@ SERVICES=(
 )
 
 for DB in "${SERVICES[@]}"; do
-    psql -h $PGHOST -U $PGUSER -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_$DEPLOYMENT' AND pid <> pg_backend_pid();"
-    psql -h $PGHOST -U $PGUSER -c "DROP DATABASE IF EXISTS $DB_$DEPLOYMENT;"
-    psql -h $PGHOST -U $PGUSER -c "CREATE DATABASE $DB_$DEPLOYMENT OWNER $PGUSER;"
+    psql -h $PGHOST -U $PGUSER -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB}_${DEPLOYMENT}' AND pid <> pg_backend_pid();"
+    psql -h $PGHOST -U $PGUSER -c "DROP DATABASE IF EXISTS ${DB}_${DEPLOYMENT};"
+    psql -h $PGHOST -U $PGUSER -c "CREATE DATABASE ${DB}_${DEPLOYMENT} OWNER $PGUSER;"
 done
 ```
 
@@ -145,7 +145,7 @@ Load the dump files into the newly created databases:
 
 ```sh
 for DB in "${SERVICES[@]}"; do
-    psql -h $PGHOST -U $PGUSER -d $DB_$DEPLOYMENT -f "$DB_DUMP_DIR/$db"
+    psql -h $PGHOST -U $PGUSER -d ${DB}_${DEPLOYMENT} -f "$DB_DUMP_DIR/$db"
 done
 ```
 
