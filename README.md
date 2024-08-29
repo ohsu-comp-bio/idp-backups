@@ -70,7 +70,7 @@ Set up the new RDS instance in the AWS console with the appropriate configuratio
 ```sh
 export DEPLOYMENT='<DEPLOYMENT>'
 export PGHOST='<RDS ENDPOINT>'
-export USER='<RDS USER>'
+export PGUSER='<RDS USER>'
 export DB_DUMP_DIR="/tmp/$DEPLOYMENT-db-dump"
 mkdir -p $DB_DUMP_DIR
 ```
@@ -102,7 +102,7 @@ dbs=(
 for db in "${dbs[@]}"
 do
   echo "Dumping: $db to $DB_DUMP_DIR/$db"
-  pg_dump -h $PGHOST -U $USER -W -d ${db}_${DEPLOYMENT} -f "$DB_DUMP_DIR/$db"
+  pg_dump -h $PGHOST -U $PGUSER -W -d ${db}_${DEPLOYMENT} -f "$DB_DUMP_DIR/$db"
 done
 ```
 
