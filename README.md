@@ -80,7 +80,7 @@ mkdir -p $DB_DUMP_DIR
 Dump global objects such as roles and tablespaces before dumping the individual databases:
 
 ```sh
-pg_dumpall -h $PGHOST -U postgres -W --globals-only -f "$DB_DUMP_DIR/${DEPLOYMENT}_globals.sql"
+pg_dumpall -h $PGHOST -U postgres -W --globals-only --no-role-passwords -f "$DB_DUMP_DIR/${DEPLOYMENT}_globals.sql"
 ```
 
 ### Dump Databases
