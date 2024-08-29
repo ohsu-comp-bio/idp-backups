@@ -232,7 +232,7 @@ curl -X GET "$GEN3_ELASTICSEARCH_MASTER_SERVICE_HOST:9200/_cat/indices?v&h=index
 
 ```sh
 export ES_ENDPOINT="<DOMAIN ENDPOINT>"
-export ES_EXPORT="/tmp/staging-es-dump"
+export ES_EXPORT="/tmp/$DEPLOYMENT-es-dump"
 mkdir -p $ES_EXPORT
 
 multielasticdump \
@@ -247,6 +247,8 @@ multielasticdump \
 ```sh
 wget https://github.com/abutaha/aws-es-proxy/releases/download/v1.5/aws-es-proxy-1.5-linux-amd64 -O aws-es-proxy
 chmod +x aws-es-proxy
+
+# This will start the proxy on localhost:9200 (in the background)
 ./aws-es-proxy -endpoint "$ES_ENDPOINT" &
 
 curl localhost:9200/_cat/indices
